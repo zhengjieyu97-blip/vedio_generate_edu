@@ -1,0 +1,34 @@
+identity:
+  name: "vedio_generate_edu"
+  author: "xiaoyu"
+  label:
+    en_US: "vedio_generate_edu"
+    zh_Hans: "vedio_generate_edu"
+    pt_BR: "vedio_generate_edu"
+    ja_JP: "vedio_generate_edu"
+description:
+  human:
+    en_US: "用于生成教育类视频的工具"
+    zh_Hans: "用于生成教育类视频的工具"
+    pt_BR: "用于生成教育类视频的工具"
+    ja_JP: "用于生成教育类视频的工具"
+  llm: "用于生成教育类视频的工具"
+parameters:
+  - name: query
+    type: string
+    required: true
+    label:
+      en_US: Query string
+      zh_Hans: 查询语句
+      pt_BR: Query string
+      ja_JP: クエリ文字列
+    human_description:
+      en_US: "用于生成教育类视频的工具"
+      zh_Hans: "用于生成教育类视频的工具"
+      pt_BR: "用于生成教育类视频的工具"
+      ja_JP: "用于生成教育类视频的工具"
+    llm_description: "用于生成教育类视频的工具"
+    form: llm
+extra:
+  python:
+    source: tools/vedio_generate_edu.py
