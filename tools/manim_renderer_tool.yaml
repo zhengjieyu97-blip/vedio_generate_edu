@@ -1,0 +1,56 @@
+identity:
+  name: manim_renderer_tool
+  author: Dify
+  label:
+    en_US: Manim Renderer Tool
+    zh_Hans: Manim 视频渲染器
+description:
+  human:
+    en_US: Renders Manim Python code into a video file.
+    zh_Hans: 将 Manim Python 代码渲染为视频。
+  llm: A tool for rendering Manim Python code into a video file.
+parameters:
+  - name: code
+    type: string
+    required: true
+    label:
+      en_US: Manim Code
+      zh_Hans: Manim 代码
+    human_description:
+      en_US: The Python code for the scene.
+      zh_Hans: 场景的 Python 代码。
+    form: llm
+  - name: quality
+    type: select
+    required: false
+    default: low
+    options:
+      - value: low
+        label:
+          en_US: Low (480p15)
+          zh_Hans: 低画质 (480p15)
+      - value: medium
+        label:
+          en_US: Medium (720p30)
+          zh_Hans: 中画质 (720p30)
+      - value: high
+        label:
+          en_US: High (1080p60)
+          zh_Hans: 高画质 (1080p60)
+      - value: 4k
+        label:
+          en_US: 4K (2160p60)
+          zh_Hans: 4K画质 (2160p60)
+    label:
+      en_US: Quality
+      zh_Hans: 渲染质量
+    description:
+      en_US: Render quality. Low is faster for preview.
+      zh_Hans: 渲染质量。低画质渲染速度更快，适合预览。
+    human_description:
+      en_US: Select the quality of the output video.
+      zh_Hans: 选择输出视频的质量。
+    form: form
+extra:
+  python:
+    source: tools/manim_renderer_tool.py

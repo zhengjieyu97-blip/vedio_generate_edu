@@ -1,4 +1,4 @@
-version: 0.0.1
+version: 1.0.0
 type: plugin
 author: zhengjieyu97-blip
 name: vedio_generate_edu
@@ -12,8 +12,8 @@ description:
   ja_JP: 用于生成教育类视频的工具
   zh_Hans: 用于生成教育类视频的工具
   pt_BR: 用于生成教育类视频的工具
-icon: icon.svg
-icon_dark: icon-dark.svg
+icon: icon1.svg
+icon_dark: icon-dark1.svg
 resource:
   memory: 268435456
   permission:
@@ -38,7 +38,7 @@ plugins:
   tools:
     - provider/vedio_generate_edu.yaml
 meta:
-  version: 0.0.1
+  version: 1.0.0
   arch:
     - amd64
     - arm64

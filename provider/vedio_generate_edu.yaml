@@ -11,7 +11,7 @@ identity:
     zh_Hans: "用于生成教育类视频的工具"
     pt_BR: "用于生成教育类视频的工具"
     ja_JP: "用于生成教育类视频的工具"
-  icon: "icon.svg"
+  icon: "icon1.svg"
 
 #########################################################################################
 # If you want to support OAuth, you can uncomment the following code.
@@ -54,9 +54,10 @@ identity:
 #       label:
 #         zh_Hans: "Access Token"
 #         en_US: "Access Token"
-
 tools:
-  - tools/vedio_generate_edu.yaml
+  - tools/video_concatenator.yaml
+  - tools/segment_code_generator.yaml
+  - tools/manim_renderer_tool.yaml
 extra:
   python:
     source: provider/vedio_generate_edu.py

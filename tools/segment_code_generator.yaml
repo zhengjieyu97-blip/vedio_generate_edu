@@ -1,0 +1,25 @@
+identity:
+  name: segment_code_generator
+  author: xiaoyu
+  label:
+    en_US: Manim Code Generator 
+    zh_Hans: Manim 代码生成器
+description:
+  human:
+    en_US: Generates Manim Python code from a single JSON segment using advanced middleware logic.
+    zh_Hans: 接收单个 JSON 片段，使用强大的中间层逻辑生成独立的 Manim Python 代码。
+  llm: A tool that generates Manim Python code from a JSON segment description.
+parameters:
+  - name: segment_json
+    type: string
+    required: true
+    label:
+      en_US: Segment JSON
+      zh_Hans: 片段 JSON 数据
+    human_description:
+      en_US: The JSON object or string representing a single video segment.
+      zh_Hans: 单个视频片段的 JSON 对象或字符串表示。
+    form: llm
+extra:
+  python:
+    source: tools/segment_code_generator.py

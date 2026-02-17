@@ -1,0 +1,25 @@
+identity:
+  name: video_concatenator
+  author: xiaoyu
+  label:
+    en_US: Video Concatenator
+    zh_Hans: 视频片段拼接器
+description:
+  human:
+    en_US: Merges multiple video files into a single MP4 video.
+    zh_Hans: 将多个 MP4 视频片段合并为一个长视频,然后返回完整的视频文件和视频路径。
+  llm: A tool for concatenating multiple MP4 video files into one. Input should be a list of video files.
+parameters:
+  - name: video_files
+    type: string 
+    required: true
+    label:
+      en_US: Video File List
+      zh_Hans: 视频文件列表
+    human_description:
+      en_US: The list of video files to concatenate. Can be a JSON array of file paths.
+      zh_Hans: 要拼接的视频文件列表。通常接收迭代节点的输出结果 (Array[Object])。
+    form: llm
+extra:
+  python:
+    source: tools/video_concatenator.py

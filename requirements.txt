@@ -1,1 +1,4 @@
 dify_plugin>=0.4.0,<=0.7.1
+manim==0.18.1
+manim-voiceover==0.3.7
+gTTS
