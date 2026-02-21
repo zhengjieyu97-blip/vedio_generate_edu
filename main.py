@@ -4,14 +4,27 @@ import sys
 # 此行必须在其他任何 import 之前执行
 try:
     import pkg_resources  # noqa: F401
-except ImportError:
+    # 验证关键方法存在
+    pkg_resources.get_distribution
+except (ImportError, AttributeError):
     import types
+    import importlib.metadata as _meta
+
+    class _Distribution:
+        def __init__(self, name):
+            try:
+                self.version = _meta.version(name)
+            except Exception:
+                self.version = "0.0.0"
+
     _shim = types.ModuleType("pkg_resources")
     _shim.require = lambda *a, **kw: None
+    _shim.get_distribution = lambda name: _Distribution(name)
     _shim.WorkingSet = type("WorkingSet", (), {})
     _shim.DistributionNotFound = Exception
     _shim.VersionConflict = Exception
     sys.modules["pkg_resources"] = _shim
+
 
 from dify_plugin import Plugin, DifyPluginEnv
 
