@@ -1319,15 +1319,19 @@ class SmartCircle(TopoGraph):
             c = rents[0].get_live_data()
             r = rents[1].get_live_data()
             target.value.move_to(c)
-            target.value.set_width(2 * r)
+            # [FIX] Multiply by layout_scale so LayoutManager's scaling is preserved.
+            # Without this, clamp_to_content_zone's scaling is undone every animation frame.
+            target.value.set_width(2 * r * self.layout_scale)
             return None
         
         c_node.add_constraint(circle_pos_solver, [self.center_node, self.radius_node])
         self.add_node(c_node)
 
     def get_visual_radius(self):
-        """Returns the actual visual radius in world space, accounting for scale."""
-        return self.radius_node.value * self.layout_scale
+        """Returns the actual visual radius in world space, read from Circle geometry."""
+        # [FIX] Read from self.circle.width/2 instead of radius_node.value * layout_scale.
+        # This is always accurate even when the constraint system redraws the circle.
+        return self.circle.width / 2
 
     def set_radius(self, radius):
         """
@@ -3743,20 +3747,22 @@ class SmartSectorReform(TopoGraph):
             last_rots = getattr(mob, "_last_rots", [j * (TAU/mob.n) for j in range(mob.n)])
             
             angle = TAU / mob.n
-            slice_w = mob.r * angle
+            # [FIX] Use layout_scale-aware radius so reform targets match the scaled circle
+            r_visual = mob.r * getattr(mob, 'layout_scale', 1.0)
+            slice_w = r_visual * angle
             
             for i, slice_obj in enumerate(mob.slices):
                 if mob.mode == "parallelogram":
                     row_x = (i - mob.n/2) * (slice_w * 0.5)
                     if i % 2 == 0:
-                        t_pos = np.array([row_x, mob.r/2, 0]) + center
+                        t_pos = np.array([row_x, r_visual/2, 0]) + center
                         t_rot = -angle/2 - (i * angle) + PI
                     else:
-                        t_pos = np.array([row_x, -mob.r/2, 0]) + center
+                        t_pos = np.array([row_x, -r_visual/2, 0]) + center
                         t_rot = -angle/2 - (i * angle)
                 elif mob.mode == "unroll":
                     row_x = (i - mob.n/2) * slice_w
-                    t_pos = np.array([row_x, -mob.r/2, 0]) + center
+                    t_pos = np.array([row_x, -r_visual/2, 0]) + center
                     t_rot = -angle/2 - (i * angle)
                 else:
                     t_pos = center
@@ -4589,8 +4595,8 @@ class SmartUnitCircle(TopoGraph):
         def unified_updater(m):
             # A. Get Absolute World Anchor
             center = self.circle.get_center()
-            # USE THE INTENDED RADIUS (More robust than measuring path)
-            r = self.radius 
+            # [FIX] Read actual visual radius from Circle geometry, respecting layout_scale
+            r = self.circle.width / 2
             
             # B. Get World Intention
             target_world = self.p_node.get_live_data()
