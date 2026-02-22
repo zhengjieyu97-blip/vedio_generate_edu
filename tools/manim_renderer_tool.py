@@ -148,14 +148,35 @@ class ManimRendererTool(Tool):
         # 6. 执行命令
         env = os.environ.copy()
         # 确保能找到项目根目录的依赖 (如 manim_smart_components)
-        # 假设 tools/ 在项目根目录下，加项目根目录到 PYTHONPATH
         tool_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(tool_dir)
-        env["PYTHONPATH"] = f"{project_root}{os.pathsep}{env.get('PYTHONPATH', '')}"
-        
-        # [FIX] Force UTF-8 for Manim processes on Windows (Step 5851)
+
+        # [FIX] 注入 pkg_resources 兼容垫片，解决 manim_voiceover 在 Python 3.12+ 下的
+        # ModuleNotFoundError: No module named 'pkg_resources' 问题。
+        # 做法：在临时目录写一个 pkg_resources.py 文件，并把该目录放到 PYTHONPATH 最前面，
+        # 子进程 Python 启动时会优先找到这个文件作为 pkg_resources 模块。
+        _shim_dir = tempfile.mkdtemp(prefix="dify_pkg_shim_")
+        _shim_content = (
+            "import importlib.metadata as _m\n"
+            "class _Dist:\n"
+            "    def __init__(self, n):\n"
+            "        try: self.version = _m.version(n)\n"
+            "        except: self.version = '0.0.0'\n"
+            "require = lambda *a, **kw: None\n"
+            "get_distribution = lambda n: _Dist(n)\n"
+            "WorkingSet = type('WorkingSet', (), {})\n"
+            "DistributionNotFound = Exception\n"
+            "VersionConflict = Exception\n"
+        )
+        with open(os.path.join(_shim_dir, "pkg_resources.py"), "w") as _f:
+            _f.write(_shim_content)
+
+        env["PYTHONPATH"] = f"{_shim_dir}{os.pathsep}{project_root}{os.pathsep}{env.get('PYTHONPATH', '')}"
+
+        # [FIX] Force UTF-8 for Manim processes on Windows
         env["PYTHONUTF8"] = "1"
         env["PYTHONIOENCODING"] = "utf-8"
+
 
         try:
             process = subprocess.run(
