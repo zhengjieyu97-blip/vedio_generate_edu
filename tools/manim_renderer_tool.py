@@ -80,9 +80,18 @@ class ManimRendererTool(Tool):
         script_path = os.path.join(output_base_dir, f"{file_basename}.py")
         
         # 4. 写入 Python 脚本
+        # [FIX] 在脚本开头注入 sys.path，确保 manim_smart_components 等本地模块可被找到
+        # 这比依赖 PYTHONPATH 环境变量更可靠，因为路径直接写入了脚本本身
+        tool_dir_for_prepend = os.path.dirname(os.path.abspath(__file__))
+        plugin_root_for_prepend = os.path.dirname(tool_dir_for_prepend)
+        path_prepend = (
+            "import sys as _sys\n"
+            f"_sys.path.insert(0, {repr(plugin_root_for_prepend)})\n"
+            "\n"
+        )
         try:
             with open(script_path, "w", encoding="utf-8") as f:
-                f.write(manim_code)
+                f.write(path_prepend + manim_code)
         except Exception as e:
             yield self.create_text_message(json.dumps({"status": "error", "message": f"Error writing script file: {e}"}, ensure_ascii=False))
             return
