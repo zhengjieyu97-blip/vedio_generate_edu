@@ -638,10 +638,19 @@ class ManimGenerator:
             f"{self.indent}{self.indent}# [Robustness] Fallback for Missing Components",
             f"{self.indent}{self.indent}class SafeFallback(VMobject):",
             f"{self.indent}{self.indent}{self.indent}def __init__(self, *args, **kwargs):",
+            f"{self.indent}{self.indent}{self.indent}{self.indent}# [FIX] Pre-inject internal Manim arrays via object.__setattr__ BEFORE super().__init__()",
+            f"{self.indent}{self.indent}{self.indent}{self.indent}# so that Manim's set_color() -> update_rgbas_array() does NOT trigger __getattr__",
+            f"{self.indent}{self.indent}{self.indent}{self.indent}# which would return a lambda, causing len(lambda) -> TypeError.",
+            f"{self.indent}{self.indent}{self.indent}{self.indent}import numpy as _np",
+            f"{self.indent}{self.indent}{self.indent}{self.indent}object.__setattr__(self, 'fill_rgbas', _np.zeros((1, 4)))",
+            f"{self.indent}{self.indent}{self.indent}{self.indent}object.__setattr__(self, 'stroke_rgbas', _np.zeros((1, 4)))",
             f"{self.indent}{self.indent}{self.indent}{self.indent}super().__init__()",
             f"{self.indent}{self.indent}{self.indent}def __getattr__(self, name):",
-            f"{self.indent}{self.indent}{self.indent}{self.indent}# Swallow all method calls to prevent crash",
-            f"{self.indent}{self.indent}{self.indent}{self.indent}return lambda *args, **kwargs: VMobject()",
+            f"{self.indent}{self.indent}{self.indent}{self.indent}# [FIX] Do NOT intercept dunder attributes — Python internals need them to raise AttributeError",
+            f"{self.indent}{self.indent}{self.indent}{self.indent}if name.startswith('__') and name.endswith('__'):",
+            f"{self.indent}{self.indent}{self.indent}{self.indent}{self.indent}raise AttributeError(name)",
+            f"{self.indent}{self.indent}{self.indent}{self.indent}# Swallow all other method calls to prevent crash, return self for chaining",
+            f"{self.indent}{self.indent}{self.indent}{self.indent}return lambda *args, **kwargs: self",
             ""
         ])
 
