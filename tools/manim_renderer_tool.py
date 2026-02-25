@@ -88,6 +88,18 @@ class ManimRendererTool(Tool):
             "import sys as _sys\n"
             f"_sys.path.insert(0, {repr(plugin_root_for_prepend)})\n"
             "\n"
+            "# [WinFix] Monkey-patch shutil.move with retry logic to handle WinError 32 (file locked by FFmpeg)\n"
+            "import shutil as _shutil, time as _time\n"
+            "_orig_shutil_move = _shutil.move\n"
+            "def _safe_shutil_move(src, dst, copy_function=_shutil.copy2):\n"
+            "    for _retry in range(10):\n"
+            "        try:\n"
+            "            return _orig_shutil_move(src, dst, copy_function=copy_function)\n"
+            "        except PermissionError:\n"
+            "            _time.sleep(0.5)\n"
+            "    return _orig_shutil_move(src, dst, copy_function=copy_function)\n"
+            "_shutil.move = _safe_shutil_move\n"
+            "\n"
         )
         try:
             with open(script_path, "w", encoding="utf-8") as f:
@@ -186,6 +198,11 @@ class ManimRendererTool(Tool):
         env["PYTHONUTF8"] = "1"
         env["PYTHONIOENCODING"] = "utf-8"
 
+        # [FIX] Inject User's local LaTeX (MikTeX) path into environment PATH
+        # This is needed so that Manim subprocess can find 'xelatex.exe' for rendering math text.
+        latex_bin_dir = r"C:\Users\小余\AppData\Local\Programs\MiKTeX\miktex\bin\x64"
+        env["PATH"] = f"{latex_bin_dir}{os.pathsep}{env.get('PATH', '')}"
+
 
         try:
             process = subprocess.run(
@@ -199,7 +216,16 @@ class ManimRendererTool(Tool):
             )
 
             if process.returncode != 0:
-                error_msg = f"Manim Execution Failed.\nSTDERR: {process.stderr}\nSTDOUT: {process.stdout}"
+                # [DEBUG] Save full logs to file for inspection
+                log_path = os.path.join(output_base_dir, f"{file_basename}_render.log")
+                with open(log_path, "w", encoding="utf-8") as log_f:
+                    log_f.write(f"--- COMMAND ---\n{' '.join(cmd)}\n\n")
+                    log_f.write(f"--- STDERR ---\n{process.stderr}\n\n")
+                    log_f.write(f"--- STDOUT ---\n{process.stdout}\n")
+                
+                # Extract last 10 lines of stderr for concise error reporting
+                stderr_last_lines = "\n".join(process.stderr.splitlines()[-10:])
+                error_msg = f"Manim Execution Failed.\nLog saved to: {log_path}\nLast Error:\n{stderr_last_lines}"
                 print(error_msg)
                 yield self.create_text_message(json.dumps({"status": "error", "message": error_msg}, ensure_ascii=False))
                 return

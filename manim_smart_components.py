@@ -5212,9 +5212,14 @@ class SafeTex(MathTex):
                 processed = processed.replace(uni, latex)
             
             # 2.2 CJK Wrapping (Smart)
+            # 算法专家视角：大模型生成的 JSON 中常常带有 `\\text{}` (转义的反斜杠)，
+            # 到达这里时可能表现为原始字符串 `\text{}` 或者 `\\text{}`。
+            # 避免对已被 `\text{...}` 或 `\\text{...}` 包裹的中文进行重复包裹。
             if re.search(r'[\u4e00-\u9fff]', processed):
-                if "\\text{" not in processed:
-                     processed = re.sub(r'([\u4e00-\u9fff]+)', r'\text{\1}', processed)
+                # 如果已经存在文本包裹标记（考虑转义字面量的情况），则不要再强行全局替换
+                if r"\text{" not in processed and r"\\text{" not in processed:
+                    # 将连续的中文字符块安全地包裹起来
+                    processed = re.sub(r'([\u4e00-\u9fff]+)', r'\\text{\1}', processed)
             
             # 2.3 Math Mode Wrapping (Implicit/Template based)
             # We don't force $$ here anymore because Tex class uses templates
